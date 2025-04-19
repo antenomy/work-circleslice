@@ -1,0 +1,11 @@
+             (x-self.position[0])^2 + (line_k*x + line_m - self.position[1])^2 = self.radius
+        
+        (line_k*x + line_m - self.position[1])^2
+        
+        line_k^2*x^2 + line_m^2     + 
+        2 line_k*line_m*x 
+        -2*self.position[1]*line_k - 
+        2*line_m*self.position[1]
+        
+        
+        (1+k^2)x^2 + (-2*self.position[0] - 2*self.position[1]*line_k + 2*line_k*line_m)x + (self.position[0]**2 + line_m**2 + self.position[1]**2 - 2*line_m*self.position[1] - self.radius)
