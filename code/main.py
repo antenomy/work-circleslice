@@ -26,6 +26,7 @@ def main():
     
     current_point = find_next_cut_point(new_points) # fix this
 
+    plot_points(point_array, current_point)
     
     while current_cut_radius > INNER_RADIUS:
         
@@ -43,10 +44,11 @@ def main():
                 current_theta = get_angle(current_point)
                 
                 line_k = -1 / angle_k
-                line_m = current_point[1] - CUT_THICKNESS*np.sin(current_theta)
+                line_m = current_point[1] - line_k*current_point[0]
+                print("line", line_k, line_m)
 
             new_points = check_all_point_intersections(point_array, line_k, line_m)
-            print(new_points)
+            print("new", new_points)
             point_array, angle_list = remove_outside_points(point_array, angle_list, line_k, line_m)
 
         point_array, angle_list= insert_points(point_array, angle_list, new_points)
