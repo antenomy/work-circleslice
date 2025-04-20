@@ -15,7 +15,7 @@ def main():
     point_array = generate_circle_points(OUTER_RADIUS, STARTING_CIRCLE_NUM_POINTS)
     angle_list = [2*np.pi*iteration/STARTING_CIRCLE_NUM_POINTS for iteration in range(STARTING_CIRCLE_NUM_POINTS)]
     iterations = 1
-    
+    area_removed = 0
     
     
     # First Cut
@@ -25,9 +25,14 @@ def main():
     point_array, angle_list = remove_outside_points(point_array, angle_list, new_points)
     point_array, angle_list = insert_points(point_array, angle_list, new_points)
     
-    current_point = find_next_cut_point(new_points)
+    area_removed += triangle_area([OUTER_RADIUS, 0], new_points[0], new_points[1])
+    print([OUTER_RADIUS, 0])
+    print(new_points)
+    print(area_removed)
     
-
+    current_point = find_next_cut_point(new_points)
+    old_current_point = [OUTER_RADIUS, 0]
+    
 
     
     #plot_points(point_array, current_point, new_points)
@@ -61,11 +66,21 @@ def main():
 
         point_array, angle_list= insert_points(point_array, angle_list, new_points)
         current_point = find_next_cut_point(new_points)
+
     
-    
-    
-        iterations += 1
+
+        
+        ### CALCULATING REMOVED AREA ###
+        
+        old_current_angle = get_angle(old_current_point)
+        area_removed += triangle_area([
+        old_current_point[0] + (CUT_THICKNESS*np.cos(old_current_angle)), 
+        old_current_point[1] + (CUT_THICKNESS*np.sin(old_current_angle))
+        ], new_points[0], new_points[1])
         current_cut_radius = np.linalg.norm(current_point)
+        
+        
+        ### DEBUGGING ###
         
         #print(current_point)
         #print(f"Current point: {current_point} Angle: {round(get_angle(current_point) / np.pi, 2)} pi")
@@ -77,11 +92,25 @@ def main():
         #plt.figure(iterations)
         #print()
         
+        iterations += 1
+        old_current_point = current_point
+        
         if iterations % 500 == 0:
             #plot_points(point_array, current_point, new_points)
-            print(iterations)
+            print(iterations, area_removed)
+        #     print([
+        # old_current_point[0] + (CUT_THICKNESS*np.cos(old_current_point)), 
+        # old_current_point[1] + (CUT_THICKNESS*np.sin(old_current_point))
+        # ], new_points[0], new_points[1])
+        #     print(triangle_area([
+        # old_current_point[0] + (CUT_THICKNESS*np.cos(old_current_point)), 
+        # old_current_point[1] + (CUT_THICKNESS*np.sin(old_current_point))
+        # ], new_points[0], new_points[1]))
     
     print(f"Number of cuts: {iterations}")
-            
+    print(f"Removed area: {area_removed}")
+
+# 180 000
+# 150 000
         
 main()
