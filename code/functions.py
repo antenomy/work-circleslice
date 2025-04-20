@@ -98,26 +98,25 @@ def check_point_intersection(point_a, point_b, line_k = None, line_m = 0, vertic
             
             return (float(intersection_x), float(point_k*intersection_x + point_m))  
         
-def remove_outside_points(point_array, line_k = None, line_m = 0, vertical_x = None):
+def remove_outside_points(point_array, angle_list, new_points):
     return_point_array = list()
-    print("bf", len(point_array))
-    for point in point_array:
-        
-        if vertical_x is not None:
-            if (vertical_x > 0 and point[0] < vertical_x) or (vertical_x < 0 and point[0] > vertical_x):
-                return_point_array.append(point)
-                
-        elif line_k is not None:
-            #if abs(line_k) > LARGE_THRESHOLD:
-                
-            #else:
-            line_y = line_k*point[0]+line_m
-            #print(line_y)
-            if (line_y > 0 and point[1] < line_y) or (line_y < 0 and point[1] > line_y):
-                return_point_array.append(point)
-            
-    print("af", len(return_point_array))
-    return np.array(return_point_array), [get_angle(point) for point in return_point_array]
+    return_angle_list = list()
+    
+    angle_a = get_angle(new_points[0])
+    angle_b = get_angle(new_points[1])
+
+    if (is_between(angle_a, 0, np.pi / 2) and is_between(angle_b, 3 * np.pi / 2, np.pi * 2)) or (is_between(angle_b, 0, np.pi / 2) and is_between(angle_a, 3 * np.pi / 2, np.pi * 2)):
+        for iteration in range(len(angle_list)):
+            if is_between(angle_list[iteration], angle_a, angle_b):
+                return_point_array.append(point_array[iteration])
+                return_angle_list.append(angle_list[iteration])
+    else:
+        for iteration in range(len(angle_list)):   
+            if not is_between(angle_list[iteration], angle_a, angle_b):
+                return_point_array.append(point_array[iteration])
+                return_angle_list.append(angle_list[iteration])
+
+    return np.array(return_point_array), return_angle_list
 
 def insert_points(point_array, angle_list, new_points):
     return_point_array = point_array
@@ -157,6 +156,13 @@ def find_next_cut_point(new_points):
         current_point[1] - (CUT_THICKNESS*np.sin(current_angle))
         ])
 
+def triangle_area(p1, p2, p3):
+    x1, y1 = p1
+    x2, y2 = p2
+    x3, y3 = p3
+    return 0.5 * abs(x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2))
+
+
 def plot_points(point_array, current_point, new_points):
     x = point_array[:, 0]  # All rows, first column (x-coordinates)
     y = point_array[:, 1]  # All rows, second column (y-coordinates)
@@ -181,6 +187,10 @@ def plot_points(point_array, current_point, new_points):
     plt.xlabel("X-axis")
     plt.ylabel("Y-axis")
     plt.title("Plot of 2D Points")
+    
+    # Set the limits for the x and y axes
+    plt.xlim(-300, 300)  # x-axis limits from 0 to 10
+    plt.ylim(-300, 300)  # y-axis limits from -1 to 1
 
     # Add grid (optional)
     plt.grid(True)
