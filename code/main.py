@@ -6,8 +6,13 @@ from functions import *
 #from circle import Circle
 
 import numpy as np
-import scipy
+#import scipy
 
+def angleslice():
+    pass
+
+def semi_anglieslice():
+    pass
 
 
 def main():
@@ -22,7 +27,11 @@ def main():
     current_cut_radius = OUTER_RADIUS - CUT_THICKNESS
     new_points = check_all_point_intersections(point_array, vertical_x=current_cut_radius)
 
+    point_remove_len = dict()
+    point_len = len(point_array)
     point_array, angle_list = remove_outside_points(point_array, angle_list, new_points)
+    add_dict(point_remove_len, point_len - len(point_array))
+
     point_array, angle_list = insert_points(point_array, angle_list, new_points)
     
     area_removed += triangle_area([OUTER_RADIUS, 0], new_points[0], new_points[1])
@@ -33,8 +42,6 @@ def main():
     current_point = find_next_cut_point(new_points)
     old_current_point = [OUTER_RADIUS, 0]
     
-
-    
     #plot_points(point_array, current_point, new_points)
     #plt.figure(1)
     #print()
@@ -44,8 +51,10 @@ def main():
         if abs(current_point[1]) < SMALL_THRESHOLD:
             vertical_x = reduce_magnitude(current_point[0], CUT_THICKNESS)
             new_points = check_all_point_intersections(point_array, vertical_x=vertical_x)
-    
+
+            point_len = len(point_array)
             point_array, angle_list = remove_outside_points(point_array, angle_list, new_points)
+            add_dict(point_remove_len, point_len - len(point_array))
             
         else:
             if current_point[0] == 0:
@@ -62,7 +71,9 @@ def main():
             new_points = check_all_point_intersections(point_array, line_k, line_m)
             #print("Intersection Points: ", new_points)
 
+            point_len = len(point_array)
             point_array, angle_list = remove_outside_points(point_array, angle_list, new_points)
+            add_dict(point_remove_len, point_len - len(point_array))
 
         point_array, angle_list= insert_points(point_array, angle_list, new_points)
         current_point = find_next_cut_point(new_points)
@@ -88,9 +99,8 @@ def main():
         #print("Angle length:", len(angle_list))
         #print(f"Current cut number: {iterations} \n")
         
-        #plot_points(point_array, current_point, new_points)
-        #plt.figure(iterations)
-        #print()
+        plot_points(point_array, current_point, new_points)
+        print()
         
         iterations += 1
         old_current_point = current_point
@@ -109,6 +119,7 @@ def main():
     
     print(f"Number of cuts: {iterations}")
     print(f"Removed area: {area_removed}")
+    print(point_remove_len)
 
 # 180 000
 # 150 000

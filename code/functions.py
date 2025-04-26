@@ -35,6 +35,12 @@ def get_sign(x):
     return -1
   else:
     return 0
+  
+def add_dict(dict, element):
+    if element in dict:
+        dict[element] += 1
+    else:
+        dict[element] = 1
 
 def reduce_magnitude(value, reduction):
     return get_sign(value) * (abs(value) - reduction)
