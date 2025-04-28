@@ -110,3 +110,36 @@ def semislice():
         # old_current_point[0] + (CUT_THICKNESS*np.cos(old_current_point)), 
         # old_current_point[1] + (CUT_THICKNESS*np.sin(old_current_point))
         # ], new_points[0], new_points[1]))
+
+def find_next_cut_point(new_points):
+
+    if len(new_points) != 2:
+        raise ValueError(f"ERROR! {len(new_points)} is the wrong number of intersecting points!")
+    
+    # Assign points and angles for readability
+    p0, p1 = new_points[0], new_points[1]
+    a0, a1 = get_angle(new_points[0]), get_angle(new_points[1])
+
+    # Check if this is the quadrant-wraparound case (Q1 vs Q4)
+    if a0 < np.pi / 2 and a1 > 3 * np.pi / 2:
+        current_point = p0
+    elif a1 < np.pi / 2 and a0 > 3 * np.pi / 2:
+        current_point = p1
+    else:
+        # Otherwise just pick the larger angle (more counterclockwise)
+        if a0 > a1:
+            current_point = p0
+        else:
+            current_point = p1
+    
+    current_angle = get_angle(current_point)
+    return np.array([
+        current_point[0] - (CUT_THICKNESS*np.cos(current_angle)), 
+        current_point[1] - (CUT_THICKNESS*np.sin(current_angle))
+        ])
+
+def triangle_area(p1, p2, p3):
+    x1, y1 = p1
+    x2, y2 = p2
+    x3, y3 = p3
+    return 0.5 * abs(x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2))

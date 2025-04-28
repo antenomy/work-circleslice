@@ -107,22 +107,31 @@ def check_point_intersection(point_a, point_b, line_k = None, line_m = 0, vertic
 def remove_outside_points(point_array, angle_list, new_points):
     return_point_array = list()
     return_angle_list = list()
+    removed_points = list()
+
+    #print(new_points)
     
     angle_a = get_angle(new_points[0])
     angle_b = get_angle(new_points[1])
 
     if (is_between(angle_a, 0, np.pi / 2) and is_between(angle_b, 3 * np.pi / 2, np.pi * 2)) or (is_between(angle_b, 0, np.pi / 2) and is_between(angle_a, 3 * np.pi / 2, np.pi * 2)):
+        # Checks which if there is a point on each side of the 2 pi line 
+
         for iteration in range(len(angle_list)):
             if is_between(angle_list[iteration], angle_a, angle_b):
                 return_point_array.append(point_array[iteration])
                 return_angle_list.append(angle_list[iteration])
+            else:
+                removed_points.append(point_array[iteration])
     else:
         for iteration in range(len(angle_list)):   
             if not is_between(angle_list[iteration], angle_a, angle_b):
                 return_point_array.append(point_array[iteration])
                 return_angle_list.append(angle_list[iteration])
+            else:
+                removed_points.append(point_array[iteration])
 
-    return np.array(return_point_array), return_angle_list
+    return np.array(return_point_array), return_angle_list, np.array(removed_points)
 
 def insert_points(point_array, angle_list, new_points):
     return_point_array = point_array
@@ -133,43 +142,63 @@ def insert_points(point_array, angle_list, new_points):
         
         return_point_array = np.insert(return_point_array, insertion_index, new_point, axis=0)
         return_angle_list.insert(insertion_index, new_point_angle)
+
     return return_point_array, return_angle_list
-      
-def find_next_cut_point(new_points):
 
-    if len(new_points) != 2:
-        raise ValueError(f"ERROR! {len(new_points)} is the wrong number of intersecting points!")
-    
-    # Assign points and angles for readability
-    p0, p1 = new_points[0], new_points[1]
-    a0, a1 = get_angle(new_points[0]), get_angle(new_points[1])
+def angle_sort(new_points):
 
-    # Check if this is the quadrant-wraparound case (Q1 vs Q4)
-    if a0 < np.pi / 2 and a1 > 3 * np.pi / 2:
-        current_point = p0
-    elif a1 < np.pi / 2 and a0 > 3 * np.pi / 2:
-        current_point = p1
+    angle_a = get_angle(new_points[0])
+    angle_b = get_angle(new_points[-1])
+
+    points = np.asarray(new_points)
+
+    angles = np.arctan2(points[:,1], points[:,0])
+    angles = np.mod(angles, 2 * np.pi)
+
+    # Sort points by angle
+    sort_order = np.argsort(angles)
+    sorted_points = points[sort_order]
+    break_index = 0
+
+    if (is_between(angle_a, 0, np.pi / 2) and is_between(angle_b, 3 * np.pi / 2, np.pi * 2)) or (is_between(angle_b, 0, np.pi / 2) and is_between(angle_a, 3 * np.pi / 2, np.pi * 2)):
+        for point in sorted_points:
+            if get_angle(point) > 3 * np.pi / 2:
+                break
+            break_index += 1
+
+        export_array = np.concatenate((sorted_points[break_index:], sorted_points[:break_index]))
     else:
-        # Otherwise just pick the larger angle (more counterclockwise)
-        if a0 > a1:
-            current_point = p0
-        else:
-            current_point = p1
+        export_array = sorted_points
+
+    return export_array 
+
+
+
+def polygon_area(vertices):
+    """
+    Calculate the area of a polygon using the shoelace formula.
+
+    Parameters:
+    vertices (array-like): An (N, 2) array of x, y coordinates.
+
+    Returns:
+    float: The absolute area of the polygon.
+    """
+    vertices = np.asarray(vertices)
+
+    if vertices.shape[0] < 3:
+        return 0
     
-    current_angle = get_angle(current_point)
-    return np.array([
-        current_point[0] - (CUT_THICKNESS*np.cos(current_angle)), 
-        current_point[1] - (CUT_THICKNESS*np.sin(current_angle))
-        ])
-
-def triangle_area(p1, p2, p3):
-    x1, y1 = p1
-    x2, y2 = p2
-    x3, y3 = p3
-    return 0.5 * abs(x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2))
+    x = vertices[:, 0]
+    y = vertices[:, 1]
+    # Shift the coordinates
+    x_shifted = np.roll(x, -1)
+    y_shifted = np.roll(y, -1)
+    area = 0.5 * np.abs(np.dot(x, y_shifted) - np.dot(y, x_shifted))
+    return area
 
 
-def plot_points(point_array, current_point, new_points):
+def plot_points(point_array, new_points, plot_current = False, current_point = None):
     x = point_array[:, 0]  # All rows, first column (x-coordinates)
     y = point_array[:, 1]  # All rows, second column (y-coordinates)
     
@@ -182,7 +211,10 @@ def plot_points(point_array, current_point, new_points):
     # Create the scatter plot
     plt.figure(figsize=(8, 6))  # Optional: Adjust figure size
     plt.scatter(x, y)
-    plt.scatter(current_point[0], current_point[1], color='red', marker='o', s=100)
+
+    if plot_current:
+        plt.scatter(current_point[0], current_point[1], color='red', marker='o', s=100)
+
     plt.scatter(first[0], first[1], color='yellow', marker='o', s=100)
     plt.scatter(last[0], last[1], color='green', marker='o', s=100)
     
